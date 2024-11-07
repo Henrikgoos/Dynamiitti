@@ -1,5 +1,5 @@
 {
-  "name": "open-data-exercise",
+  "name": "OpenData",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "open-data-exercise": "file:",
+    "OpenData": "file:",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
