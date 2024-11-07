@@ -1,66 +1,84 @@
+import { useState, useEffect } from 'react'
+import './App.css'
 
-
-import React, { useState, useEffect } from 'react';
-import './App.css';
-
+import axios from 'axios';
 
 function App() {
-  return (
-    <Cocktail />
-  );
-}
+  const [cocktail, setCocktail] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResult, setSearchResult] = useState(null);
 
-function Cocktail() {
-  const [drinks, setDrinks] = useState([]);
-  const [loading, setLoading] = useState(true);
   useEffect(() => {
-
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('https://www.thecocktaildb.com/api/json/v1/1/search.php?s=margarita');
-        
-        const data = await response.json();
-        
-        setDrinks(data.drinks || []);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    fetchRandomCocktail();
   }, []);
 
+  const fetchRandomCocktail = async () => {
+    try {
+      const response = await axios.get('https://www.thecocktaildb.com/api/json/v1/1/random.php');
+      setCocktail(response.data.drinks[0]);
+    } catch (error) {
+      console.error('Error fetching random cocktail:', error);
+    }
+  };
+
+  
+  const searchCocktail = async () => {
+    try {
+      const response = await axios.get(`https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${searchTerm}`);
+      setSearchResult(response.data.drinks ? response.data.drinks[0] : null);
+    } catch (error) {
+      console.error('Error searching cocktail:', error);
+    }
+  };
+
   return (
-    <div>
-      <h1>Drinkkilista</h1>
-      <div>
-        {drinks.map((drink) => (
-          <div key={drink.idDrink}>
-            <img src={drink.strDrinkThumb} alt={drink.strDrink}/>
-            <h2>{drink.strDrink}</h2>
-            <b>Category: </b><p>{drink.strCategory}</p>
-            <b>Glass: </b><p>{drink.strGlass}</p>
-            <b>Instructions: </b><p>{drink.strInstructions}</p>
-            <h3>Ingredients</h3>
-              {Array.from({ length: 15 }, (_, i) => i + 1)
-                .map((i) => ({
-                  ingredient: drink[`strIngredient${i}`],
-                  measure: drink[`strMeasure${i}`],
-                }))
-                .filter((item) => item.ingredient)
-                .map((item, index) => (
-                  <p key={index}>
-                    {item.measure ? `${item.measure} ` : ''}{item.ingredient}
-                  </p>
-                ))}
-          </div>
-        ))}
-      </div>
+    <div style={{ padding: '20px' }}>
+      <h1>Päivän coctaili</h1>
+      
+
+      {cocktail ? (
+        <div>
+          <h2>{cocktail.strDrink}</h2>
+          <p><strong>Glass:</strong> {cocktail.strGlass}</p>
+          <p><strong>Instructions:</strong> {cocktail.strInstructions}</p>
+          <ul>
+            {Array.from({ length: 15 }, (_, i) => i + 1)
+              .map(i => cocktail[`strIngredient${i}`] && (
+                <li key={i}>{cocktail[`strIngredient${i}`]} - {cocktail[`strMeasure${i}`]}</li>
+              ))}
+          </ul>
+        </div>
+      ) : (
+        <p>Loading...</p>
+      )}
+      
+      <h2>Etsi lisää coctaileja</h2>
+      <input
+        type="text"
+        placeholder="Hae nimellä"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+      <button onClick={searchCocktail}>Etsi</button>
+
+
+      {searchResult ? (
+        <div>
+          <h2>{searchResult.strDrink}</h2>
+          <p><strong>Glass:</strong> {searchResult.strGlass}</p>
+          <p><strong>Instructions:</strong> {searchResult.strInstructions}</p>
+          <ul>
+            {Array.from({ length: 15 }, (_, i) => i + 1)
+              .map(i => searchResult[`strIngredient${i}`] && (
+                <li key={i}>{searchResult[`strIngredient${i}`]} - {searchResult[`strMeasure${i}`]}</li>
+              ))}
+          </ul>
+        </div>
+      ) : searchTerm && (
+        <p>Ei löytynyt haulla: {searchTerm}</p>
+      )}
     </div>
   );
 }
 
-export default App;
-
-
+export default App
